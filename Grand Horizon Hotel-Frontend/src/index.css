@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+/**
+ * Grand Horizon Hotel design tokens.
+ * Tailwind v4 reads custom properties declared under `@theme` and turns
+ * each one into a utility (e.g. --color-navy-800 => bg-navy-800,
+ * text-navy-800, border-navy-800, ...). Nothing outside this file needs a
+ * tailwind.config.js — v4 resolves theme entirely from CSS.
+ */
+@theme {
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Deep Teal — navigation, headers, dark surfaces. Same ramp shape as the
+     old navy scale, retinted to the #285A59 brand teal (the 800 step). */
+  --color-navy-950: #163232;
+  --color-navy-900: #1e4443;
+  --color-navy-800: #285a59;
+  --color-navy-700: #32706f;
+  --color-navy-600: #3e8b8a;
+  --color-navy-500: #4caba9;
+
+  /* Brushed gold — CTAs, accents, active states */
+  --color-gold-700: #92400e;
+  --color-gold-600: #b45309;
+  --color-gold-500: #ca8a04;
+  --color-gold-400: #d4a72c;
+  --color-gold-200: #f2dfa8;
+  --color-gold-100: #fdf3e0;
+
+  /* Neutral premium surfaces */
+  --color-cream: #faf9f6;
+  --color-surface: #f8fafc;
+
+  /* Semantic — room availability */
+  --color-available-bg: #eaf6ee;
+  --color-available-text: #2f6b45;
+  --color-available-border: #c9e6d2;
+
+  --color-occupied-bg: #fbeaea;
+  --color-occupied-text: #9f3131;
+  --color-occupied-border: #f0c9c9;
+
+  --color-maintenance-bg: #fdf3e0;
+  --color-maintenance-text: #92400e;
+  --color-maintenance-border: #f2dfa8;
+
+  --shadow-luxury: 0 20px 45px -20px rgba(22, 50, 50, 0.35);
+  --shadow-luxury-sm: 0 10px 25px -12px rgba(22, 50, 50, 0.25);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-cream);
+    color: var(--color-navy-950);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  /* Soft, on-brand focus ring for keyboard navigation — never remove
+     focus-visible outlines outright, just make them match the palette. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-gold-200);
+    color: var(--color-navy-950);
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gold-600 px-6 py-3
+      text-sm font-semibold tracking-wide text-white shadow-luxury-sm
+      transition-all duration-300 ease-in-out
+      hover:scale-[1.02] hover:bg-gold-700 hover:shadow-luxury
+      focus-visible:scale-[1.02]
+      active:scale-[0.99]
+      disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .btn-navy {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-navy-800 px-6 py-3
+      text-sm font-semibold tracking-wide text-white shadow-luxury-sm
+      transition-all duration-300 ease-in-out
+      hover:scale-[1.02] hover:bg-navy-900 hover:shadow-luxury
+      active:scale-[0.99]
+      disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-navy-800/20 bg-white/80 px-6 py-3
+      text-sm font-semibold tracking-wide text-navy-800 backdrop-blur-sm
+      transition-all duration-300 ease-in-out
+      hover:scale-[1.02] hover:border-navy-800 hover:bg-white
+      active:scale-[0.99]
+      disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-navy-950/5 bg-white shadow-luxury-sm transition-all duration-300 ease-in-out;
+  }
+
+  /*
+   * "3D Refractive Glass & Floating Depth" — the Grand Pillars cards.
+   * No rotate/skew, by design: only translateY (a uniform, level lift),
+   * a deepening shadow, and a cursor-tracked light reflection. --mouse-x/
+   * --mouse-y are written by PillarCard's onMouseMove handler.
+   */
+  .pillar-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.4s ease;
+  }
+
+  .pillar-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      280px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(255, 255, 255, 0.4),
+      rgba(212, 167, 44, 0.1) 45%,
+      transparent 70%
+    );
+  }
+
+  .pillar-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(212, 167, 44, 0.35);
+    box-shadow: 0 32px 60px -24px rgba(22, 50, 50, 0.4), 0 10px 24px -10px rgba(180, 83, 9, 0.18);
+  }
+
+  .pillar-card:hover::before {
+    opacity: 1;
+  }
+
+  .pillar-card__content {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pillar-card:hover .pillar-card__content {
+    transform: translateY(-4px);
+  }
+
+  .pillar-card__icon {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  }
+
+  .pillar-card:hover .pillar-card__icon {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 22px -10px rgba(180, 83, 9, 0.4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pillar-card,
+    .pillar-card__content,
+    .pillar-card__icon {
+      transition: none;
+    }
+
+    .pillar-card:hover {
+      transform: none;
+    }
+
+    .pillar-card:hover .pillar-card__content,
+    .pillar-card:hover .pillar-card__icon {
+      transform: none;
+    }
+  }
+
+  .input-luxury {
+    @apply w-full rounded-xl border border-navy-950/10 bg-white px-4 py-3 text-sm text-navy-950
+      placeholder:text-navy-950/40
+      transition-all duration-300 ease-in-out
+      focus:border-gold-500 focus:outline-none focus:ring-4 focus:ring-gold-500/15
+      disabled:cursor-not-allowed disabled:border-navy-950/5 disabled:bg-surface disabled:text-navy-950/50;
+  }
+
+  .label-luxury {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-navy-800/70;
+  }
+
+  .password-toggle-btn {
+    @apply absolute inset-y-0 right-0 flex items-center pr-4 text-navy-950/35
+      transition-colors duration-200 ease-in-out
+      hover:text-navy-800 focus-visible:text-navy-800 focus:outline-none
+      disabled:cursor-not-allowed disabled:text-navy-950/20;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-gold-600;
+  }
+
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skeleton-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: skeleton-shimmer-sweep 1.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer::after {
+      animation: none;
+    }
+  }
+
+  .animate-modal-in {
+    animation: modal-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-modal-in {
+      animation: none;
+    }
+  }
+}
+
+@keyframes skeleton-shimmer-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

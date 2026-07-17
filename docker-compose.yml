@@ -1,0 +1,89 @@
+services:
+  # 1. PostgreSQL Database Container
+  postgres-db:
+    image: postgres:14-alpine
+    container_name: grand-horizon-postgres
+    environment:
+      POSTGRES_DB: grand_horizon_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: GrandHorizon2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_horizon_data:/var/lib/postgresql/data
+    networks:
+      - horizon-network
+    restart: always
+
+  # 2. pgAdmin 4 Container
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: grand-horizon-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@grandhorizon.com
+      PGADMIN_DEFAULT_PASSWORD: AdminPassword2026
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-db
+    networks:
+      - horizon-network
+    restart: always
+
+  # 3. Spring Boot Application Container
+  backend-api:
+    build: "./Grand Horizon Hotel-Backend"
+    container_name: grand-horizon-backend
+    ports:
+      - "5252:5252"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/grand_horizon_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: GrandHorizon2026
+    volumes:
+      # `application.upload.root-dir=uploads` (application.properties) resolves
+      # relative to the JVM's working directory, which is /app per the
+      # Dockerfile's WORKDIR - so this is where WebConfig serves /uploads/**
+      # from and where FileStorageServiceImpl actually writes files. Without
+      # this volume, every container recreation (any `up --build`) starts
+      # from a fresh writable layer and every uploaded room photo/avatar is
+      # gone - which is exactly the bug being fixed here.
+      - hotel_upload_assets:/app/uploads
+    networks:
+      - horizon-network
+    restart: always
+
+  # 4. React Frontend Container
+  frontend-app:
+    build: "./Grand Horizon Hotel-Frontend"
+    container_name: grand-horizon-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend-api
+    environment:
+      # The browser (not this container) makes the actual API calls, and
+      # reaches the backend through its host-mapped port above - so this
+      # points at localhost:5252, not the in-network "backend-api" service
+      # name, which would only resolve for container-to-container traffic.
+      VITE_API_BASE_URL: http://localhost:5252
+    networks:
+      - horizon-network
+    restart: always
+
+networks:
+  horizon-network:
+    driver: bridge
+
+volumes:
+  postgres_horizon_data:
+    # Pinned to the volume already created under the old backend-folder
+    # compose file (project name "grandhorizonhotel-backend") so moving
+    # the compose file to root doesn't orphan the existing database - the
+    # new default project name derived from this folder would otherwise
+    # produce a different physical volume name and this would silently
+    # start from an empty database.
+    name: grandhorizonhotel-backend_postgres_horizon_data
+  hotel_upload_assets:
