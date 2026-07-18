@@ -117,6 +117,11 @@ export default function AdminSettingsPage() {
             id="settings-name"
             label="Full Name"
             required
+            pattern="^[a-zA-Z\s]+$"
+            title="Letters and spaces only"
+            onKeyDown={(e) => {
+              if (e.key.length === 1 && !/[a-zA-Z\s]/.test(e.key)) e.preventDefault();
+            }}
             value={form.name}
             onChange={(e) => updateField("name", e.target.value)}
             error={fieldErrors.name}
@@ -134,6 +139,11 @@ export default function AdminSettingsPage() {
             id="settings-phone"
             label="Phone Number"
             required
+            inputMode="tel"
+            pattern="^\+?[0-9\s]+$"
+            onKeyDown={(e) => {
+              if (e.key.length === 1 && !/[0-9+\s]/.test(e.key)) e.preventDefault();
+            }}
             value={form.phone}
             onChange={(e) => updateField("phone", e.target.value)}
             error={fieldErrors.phone}

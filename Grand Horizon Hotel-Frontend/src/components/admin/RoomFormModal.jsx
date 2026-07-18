@@ -71,12 +71,25 @@ export default function RoomFormModal({ open, room, onClose, onSaved }) {
     }
 
     const amenities = form.amenitiesText.split(",").map((item) => item.trim()).filter(Boolean);
+    const boundsErrors = {};
     if (amenities.length === 0) {
-      setFieldErrors({ amenitiesText: "At least one amenity is required." });
-      return;
+      boundsErrors.amenitiesText = "At least one amenity is required.";
     }
     if (!form.description.trim()) {
-      setFieldErrors({ description: "Description is required." });
+      boundsErrors.description = "Description is required.";
+    }
+    const price = Number(form.pricePerNight);
+    if (!(price > 0)) {
+      boundsErrors.pricePerNight = "Price per night must be greater than zero.";
+    }
+    if (form.rating !== "" && form.rating !== null && form.rating !== undefined) {
+      const rating = Number(form.rating);
+      if (!(rating >= 0 && rating <= 5)) {
+        boundsErrors.rating = "Rating must be between 0 and 5.";
+      }
+    }
+    if (Object.keys(boundsErrors).length > 0) {
+      setFieldErrors(boundsErrors);
       return;
     }
 
@@ -165,6 +178,7 @@ export default function RoomFormModal({ open, room, onClose, onSaved }) {
             onKeyDown={decimalKeyDown}
             value={form.rating}
             onChange={(e) => updateField("rating", e.target.value)}
+            error={fieldErrors.rating}
             hint="0-5, numbers only."
           />
         </div>
